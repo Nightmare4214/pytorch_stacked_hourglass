@@ -1,6 +1,6 @@
+from cv2 import cv2
 import numpy as np
-import scipy.misc
-import cv2
+
 
 # =============================================================================
 # General image processing functions
@@ -16,21 +16,22 @@ def get_transform(center, scale, res, rot=0):
     t[1, 2] = res[0] * (-float(center[1]) / h + .5)
     t[2, 2] = 1
     if not rot == 0:
-        rot = -rot # To match direction of rotation from cropping
-        rot_mat = np.zeros((3,3))
+        rot = -rot  # To match direction of rotation from cropping
+        rot_mat = np.zeros((3, 3))
         rot_rad = rot * np.pi / 180
-        sn,cs = np.sin(rot_rad), np.cos(rot_rad)
-        rot_mat[0,:2] = [cs, -sn]
-        rot_mat[1,:2] = [sn, cs]
-        rot_mat[2,2] = 1
+        sn, cs = np.sin(rot_rad), np.cos(rot_rad)
+        rot_mat[0, :2] = [cs, -sn]
+        rot_mat[1, :2] = [sn, cs]
+        rot_mat[2, 2] = 1
         # Need to rotate around center
         t_mat = np.eye(3)
-        t_mat[0,2] = -res[1]/2
-        t_mat[1,2] = -res[0]/2
+        t_mat[0, 2] = -res[1] / 2
+        t_mat[1, 2] = -res[0] / 2
         t_inv = t_mat.copy()
-        t_inv[:2,2] *= -1
-        t = np.dot(t_inv,np.dot(rot_mat,np.dot(t_mat,t)))
+        t_inv[:2, 2] *= -1
+        t = np.dot(t_inv, np.dot(rot_mat, np.dot(t_mat, t)))
     return t
+
 
 def transform(pt, center, scale, res, invert=0, rot=0):
     # Transform pixel location to different reference
@@ -40,6 +41,7 @@ def transform(pt, center, scale, res, invert=0, rot=0):
     new_pt = np.array([pt[0], pt[1], 1.]).T
     new_pt = np.dot(t, new_pt)
     return new_pt[:2].astype(int)
+
 
 def crop(img, center, scale, res, rot=0):
     # Upper left point
@@ -62,15 +64,18 @@ def crop(img, center, scale, res, rot=0):
 
     return cv2.resize(new_img, res)
 
+
 def inv_mat(mat):
-    ans = np.linalg.pinv(np.array(mat).tolist() + [[0,0,1]])
+    ans = np.linalg.pinv(np.array(mat).tolist() + [[0, 0, 1]])
     return ans[:2]
+
 
 def kpt_affine(kpt, mat):
     kpt = np.array(kpt)
     shape = kpt.shape
     kpt = kpt.reshape(-1, 2)
-    return np.dot( np.concatenate((kpt, kpt[:, 0:1]*0+1), axis = 1), mat.T ).reshape(shape)
+    return np.dot(np.concatenate((kpt, kpt[:, 0:1] * 0 + 1), axis=1), mat.T).reshape(shape)
+
 
 def resize(im, res):
-    return np.array([cv2.resize(im[i],res) for i in range(im.shape[0])])
+    return np.array([cv2.resize(im[i], res) for i in range(im.shape[0])])
